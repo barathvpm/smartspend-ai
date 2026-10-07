@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>SmartSpend AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#0b1020;--bg2:#121933;--card:rgba(255,255,255,.045);--bd:rgba(255,255,255,.09);--tx:#e8ecf8;--mu:#8b95b5;--ac:#6ee7b7;--ac2:#6366f1;--bad:#fb7185;--warn:#fbbf24}
+:root[data-theme=light]{--bg:#f4f6fb;--bg2:#fff;--card:#fff;--bd:#e3e7f1;--tx:#151a2e;--mu:#6b7491}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:radial-gradient(900px 500px at 85% -10%,rgba(99,102,241,.22),transparent),var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
+#app{display:flex;min-height:100%}
+nav{width:230px;padding:22px 14px;border-right:1px solid var(--bd);background:var(--bg2);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+.logo{font-weight:800;font-size:19px;padding:0 10px 4px}.logo b{background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;color:transparent}
+.tag{color:var(--mu);font-size:11px;padding:0 10px 18px}
+nav a{padding:10px 12px;border-radius:12px;color:var(--mu);display:flex;gap:10px;font-weight:500}
+nav a.on,nav a:hover{background:var(--card);color:var(--tx);box-shadow:inset 0 0 0 1px var(--bd)}
+main{flex:1;padding:26px;max-width:1200px;margin:auto;width:100%;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px}
+h1{margin:0;font-size:26px;letter-spacing:-.5px}h3{margin:0 0 12px;font-size:15px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;backdrop-filter:blur(8px);min-width:0}
+.k{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.v{font-size:26px;font-weight:700;margin-top:4px}
+.mu{color:var(--mu)}.sm{font-size:13px}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.bar i.w{background:var(--warn)}.bar i.b{background:var(--bad)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}
+.pill{font-size:11px;padding:2px 9px;border-radius:99px;background:var(--bd);white-space:nowrap}.pill.r{background:rgba(251,113,133,.18);color:var(--bad)}.pill.y{background:rgba(251,191,36,.18);color:var(--warn)}
+button,input,select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:9px 12px;min-width:0}
+button{cursor:pointer}button.p{background:linear-gradient(90deg,var(--ac2),#8b5cf6);border:0;color:#fff;font-weight:600}
+.bell{position:relative}.dot{position:absolute;top:-4px;right:-4px;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:0 5px}
+#pan{position:absolute;right:0;top:44px;width:min(320px,86vw);background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:12px;z-index:9;display:none}
+.form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.form input,.form select{flex:1 1 130px}
+.scroll{overflow-x:auto}svg{max-width:100%}
+.login{margin:12vh auto;max-width:380px;text-align:center}.login input{width:100%;margin:6px 0}.login button{width:100%;margin-top:8px}
+.ins{padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--bd);margin-bottom:10px}
+@media(max-width:760px){#app{flex-direction:column}nav{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:auto;flex-direction:row;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5;border:0;border-top:1px solid var(--bd);justify-content:space-around}
+nav .logo,nav .tag{display:none}nav a{flex-direction:column;align-items:center;padding:6px 4px;font-size:10px;gap:0}main{padding:16px 14px 90px}h1{font-size:22px}}
+.top{flex-wrap:wrap}.seg{display:flex;gap:4px;background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:3px}.seg button{border:0;padding:6px 11px;background:transparent}.seg button.p{background:linear-gradient(90deg,var(--ac2),#8b5cf6)}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script></head><body><div id="app"></div>
+<script>
+const CS={home:['Food','Transport','Shopping','Bills','Entertainment','Health','Education','Travel','Other'],biz:['Payroll','Marketing','Software','Rent & Utilities','Travel','Supplies','Professional Fees','Equipment','Other']};let CATS=CS.home;const WS={home:'🏠 Home',biz:'💼 Business'},WSN={home:'Home',biz:'Business'},FIXED=['Bills','Rent & Utilities','Payroll'];
+const BUDS={home:{Food:8000,Transport:4500,Shopping:6000,Bills:20000,Entertainment:2000,Health:2500,Education:2000,Travel:6000,Other:1500},biz:{Payroll:190000,Marketing:25000,Software:15000,'Rent & Utilities':55000,Travel:15000,Supplies:6000,'Professional Fees':10000,Equipment:12000,Other:5000}};
+const COL=['#6ee7b7','#60a5fa','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#38bdf8','#94a3b8'];
+const KW={Food:/swiggy|zomato|restaurant|cafe|grocer|bigbasket|mart|pizza|coffee|food/i,Transport:/uber|ola|metro|fuel|petrol|bus|cab|rapido/i,Shopping:/amazon|flipkart|myntra|store|mall|shop/i,Bills:/electric|rent|wifi|broadband|recharge|bill|insurance|water/i,Entertainment:/netflix|spotify|movie|cinema|game|prime|hotstar/i,Health:/pharmacy|doctor|clinic|hospital|gym|medic/i,Education:/course|udemy|book|tuition|exam|ieee/i,Travel:/flight|hotel|irctc|train|airbnb|trip|uber|ola|cab/i,Payroll:/payroll|salary|salaries|wages|contractor/i,Marketing:/\bads?\b|campaign|seo|promo|sponsor|facebook|meta/i,Software:/aws|azure|saas|slack|notion|github|hosting|domain|zoom|subscription/i,'Rent & Utilities':/rent|electric|internet|water|utilit/i,Supplies:/suppl|stationery|printer|office/i,'Professional Fees':/accountant|legal|lawyer|audit|consult/i,Equipment:/laptop|monitor|equipment|hardware|furniture/i};
+const categorize=d=>{for(const c in KW)if(CATS.includes(c)&&KW[c].test(d))return c;return'Other'};
+const fmt=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const iso=d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NAV=[['dash','Dashboard','▦'],['exp','Expenses','☰'],['ana','Analytics','◔'],['anom','Anomalies','⚠'],['bud','Budgets','◎'],['ai','AI Insights','✦'],['set','Settings','⚙']];
+let S={user:null,exp:[],bud:{},ok:[],theme:'dark',ws:'home',W:null},UI={q:'',cat:''};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem('smartspend')||'{}'))}catch(e){}
+if(!S.W)S.W={home:{exp:S.exp,bud:S.bud,ok:S.ok},biz:{exp:[],bud:{...BUDS.biz},ok:[]}};
+function apply(k){S.ws=k;CATS=CS[k];const w=S.W[k];S.exp=w.exp;S.bud=w.bud;S.ok=w.ok}apply(S.ws||'home');
+const save=()=>{S.W[S.ws]={exp:S.exp,bud:S.bud,ok:S.ok};try{localStorage.setItem('smartspend',JSON.stringify({user:S.user,theme:S.theme,ws:S.ws,W:S.W}))}catch(e){}};
+function switchWs(k){save();apply(k);UI.q='';UI.cat='';draw()}
+const uid=()=>Date.now()+Math.random();
+function gen(k){let r=k=='biz'?7:42;const rnd=()=>(r=r*16807%2147483647)/2147483647,B=k=='biz';
+const T=B?[['Google Ads','Marketing',4500],['Meta Ads','Marketing',3800],['Slack Notion Subscription','Software',2400],['Office Supplies','Supplies',1800],['Client Uber Ride','Travel',1200],['Train to Client Site','Travel',2500],['Laptop Accessories','Equipment',3500],['Legal Consultation','Professional Fees',5000],['Courier Misc','Other',900]]:[['Swiggy Order','Food',350],['BigBasket Groceries','Food',1400],['Uber Ride','Transport',260],['Petrol Pump','Transport',1200],['Amazon Purchase','Shopping',1800],['Netflix Subscription','Entertainment',649],['Pharmacy','Health',450],['Udemy Course','Education',499],['Cafe Coffee','Food',220],['Metro Recharge','Transport',500],['IRCTC Train Ticket','Travel',900]];
+const out=[],now=new Date();
+for(let i=75;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);const ds=iso(d),dn=d.getDate();
+const fx=(day,desc,a,c)=>{if(dn==day)out.push({date:ds,desc,amount:a,cat:c})},sp=(o,desc,a,c,x=1)=>{if(i==o)for(let j=0;j<x;j++)out.push({date:ds,desc,amount:a,cat:c})};
+if(B){fx(1,'Office Rent',45000,'Rent & Utilities');fx(5,'Electricity and Internet',6500,'Rent & Utilities');fx(25,'Payroll - Staff Salaries',180000,'Payroll');fx(10,'AWS Hosting',7200,'Software');fx(15,'Accountant Fees',6000,'Professional Fees');sp(6,'Laptop Purchase',98000,'Equipment');sp(3,'Conference Sponsorship',62000,'Marketing');sp(12,'Zoom Subscription',1500,'Software',2);sp(20,'Flight to Client Site',48000,'Travel')}
+else{fx(1,'House Rent',15000,'Bills');fx(5,'Electricity Bill',2100,'Bills');fx(8,'Broadband Recharge',999,'Bills');fx(10,'Netflix Subscription',649,'Entertainment');sp(6,'Electronics Store',24500,'Shopping');sp(3,'Swiggy Order',3890,'Food');sp(20,'Hotel Booking Goa',12800,'Travel');sp(12,'Spotify Premium',119,'Entertainment',2)}
+const n=rnd()<(B?.8:.7)?1+(rnd()*2|0):0;for(let q=0;q<n;q++){const t=T[rnd()*T.length|0];out.push({date:ds,desc:t[0],amount:Math.round(t[2]*(.6+rnd()*.8)),cat:t[1]})}}
+return{exp:out.map(e=>({...e,id:uid()})),bud:{...BUDS[k]},ok:[]}}
+function seed(){S.W={home:gen('home'),biz:gen('biz')};apply(S.ws);save()}
+const sum=a=>a.reduce((s,e)=>s+e.amount,0),mk=()=>iso(new Date()).slice(0,7);
+const cur=()=>S.exp.filter(e=>e.date.startsWith(mk()));
+const budTot=()=>sum(CATS.map(c=>({amount:S.bud[c]||0})));
+function anomalies(){const out={},by={};S.exp.forEach(e=>(by[e.cat]=by[e.cat]||[]).push(e));
+for(const c in by){const L=by[c];if(L.length<5)continue;const m=sum(L)/L.length,sd=Math.sqrt(L.reduce((s,e)=>s+(e.amount-m)**2,0)/L.length);
+L.forEach(e=>{if(sd&&e.amount>m+2*sd&&e.amount>1.8*m){const z=(e.amount-m)/sd;out[e.id]={r:`${(e.amount/m).toFixed(1)}× your usual ${c} spend (${fmt(m)}), z-score ${z.toFixed(1)}`,sev:z>3.5?'High':'Medium'}}})}
+const seen={};S.exp.forEach(e=>{const k=e.date+e.desc+e.amount;if(seen[k]&&e.amount>0)out[e.id]={r:'Possible duplicate charge on the same day',sev:'Medium'};seen[k]=1});
+S.ok.forEach(id=>delete out[id]);return out}
+function stats(){const c=cur(),spent=sum(c),now=new Date(),d=now.getDate(),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+const bills=sum(c.filter(e=>FIXED.includes(e.cat))),proj=bills+(spent-bills)/d*dim,bt=budTot(),A=anomalies();
+const mA=Object.keys(A).filter(id=>S.exp.find(e=>e.id==id&&e.date.startsWith(mk())));
+const byC={};CATS.forEach(k=>byC[k]=sum(c.filter(e=>e.cat==k)));
+const over=CATS.filter(k=>S.bud[k]&&byC[k]>S.bud[k]);
+let h=100;if(bt)h-=30*Math.min(1,Math.max(0,(proj/bt-.8)/.4));h-=Math.min(25,mA.length*6);h-=Math.min(25,over.length*8);h=Math.max(0,Math.round(h));
+return{spent,proj,bt,A,mA,byC,over,h,d,dim,left:bt-spent}}
+function notes(){const s=stats(),n=[];CATS.forEach(c=>{const b=S.bud[c];if(!b)return;const p=s.byC[c]/b;if(p>=1)n.push(['r',`${c} budget exceeded (${fmt(s.byC[c])} of ${fmt(b)})`]);else if(p>=.8)n.push(['y',`${c} budget at ${Math.round(p*100)}%`])});
+const wk=iso(new Date(Date.now()-7*864e5));Object.keys(s.A).forEach(id=>{const e=S.exp.find(x=>x.id==id);if(e&&e.date>=wk)n.push(['r',`Unusual: ${e.desc} ${fmt(e.amount)}`])});
+if(s.bt&&s.proj>s.bt)n.push(['y',`Projected ${fmt(s.proj)} exceeds monthly budget`]);return n}
+function insights(){const s=stats(),o=[],t=s.spent;if(!S.exp.length)return[['Add or import expenses to unlock insights.']];
+const top=CATS.slice().sort((a,b)=>s.byC[b]-s.byC[a])[0];if(t)o.push(['📊',`${top} is your biggest category at ${Math.round(s.byC[top]/t*100)}% of this month's spending.`]);
+const pm=new Date();pm.setMonth(pm.getMonth()-1);const pk=iso(pm).slice(0,7),ps=sum(S.exp.filter(e=>e.date.startsWith(pk))),dd=s.d/s.dim;
+if(ps){const ch=((t/(ps*dd))-1)*100;o.push([ch>0?'📈':'📉',`At this point in the month you're spending ${Math.abs(Math.round(ch))}% ${ch>0?'more':'less'} than last month's pace.`])}
+const we=S.exp.filter(e=>[0,6].includes(new Date(e.date+'T00:00').getDay()));if(we.length)o.push(['🗓',`Weekends account for ${Math.round(sum(we)/sum(S.exp)*100)}% of total spending.`]);
+const rec={};S.exp.forEach(e=>{const k=e.desc+'|'+e.amount;(rec[k]=rec[k]||new Set()).add(e.date.slice(0,7))});
+const subs=Object.keys(rec).filter(k=>rec[k].size>=3&&!/rent|electric|payroll|salar/i.test(k));if(subs.length)o.push(['🔁',`Detected ${subs.length} recurring charge(s): ${subs.slice(0,3).map(k=>k.split('|')[0]).join(', ')}. Review if still needed.`]);
+if(s.mA.length)o.push(['⚠️',`${s.mA.length} unusual transaction(s) this month need your review.`]);
+if(s.bt)o.push(['🎯',s.proj>s.bt?`Projected spend ${fmt(s.proj)} will exceed your budget by ${fmt(s.proj-s.bt)}. Trim about ${fmt((s.proj-s.bt)/Math.max(1,s.dim-s.d))}/day.`:`You're on track: projected ${fmt(s.proj)} vs budget ${fmt(s.bt)}.`]);return o}
+/* charts */
+function trend(){const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(iso(d))}
+const v=days.map(d=>sum(S.exp.filter(e=>e.date==d))),mx=Math.max(...v,1),W=600,H=170,pt=v.map((y,i)=>[i*W/29,H-8-y/mx*(H-24)]);
+const L=pt.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('');
+return`<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6366f1" stop-opacity=".5"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs><path d="${L}L${W} ${H}L0 ${H}Z" fill="url(#g)"/><path d="${L}" fill="none" stroke="#6ee7b7" stroke-width="2.5" stroke-linejoin="round"/></svg><div class="sm mu">Daily spend · last 30 days · peak ${fmt(mx)}</div>`}
+function donut(by){const t=sum(CATS.map(c=>({amount:by[c]})))||1;let cum=0;
+const seg=CATS.map((c,i)=>{const p=by[c]/t*100,s=`<circle r="15.9" cx="18" cy="18" fill="none" stroke="${COL[i]}" stroke-width="4" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${25-cum}"/>`;cum+=p;return s}).join('');
+return`<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 36 36" width="150">${seg}</svg><div class="sm">${CATS.filter(c=>by[c]>0).map(c=>`<div><span style="color:${COL[CATS.indexOf(c)]}">●</span> ${c} <span class="mu">${Math.round(by[c]/t*100)}%</span></div>`).join('')||'<span class="mu">No data</span>'}</div></div>`}
+const prog=(a,b)=>{const p=b?a/b:0;return`<div class="bar"><i class="${p>=1?'b':p>=.8?'w':''}" style="width:${Math.min(100,p*100)}%"></i></div>`};
+const txRow=(e,A)=>`<div class="row"><div><div>${esc(e.desc)} ${A&&A[e.id]?'<span class="pill r">anomaly</span>':''}</div><div class="sm mu">${e.date} · ${e.cat}</div></div><b>${fmt(e.amount)}</b></div>`;
+/* pages */
+const P={
+dash(){const s=stats(),rec=insights().find(i=>i[0]=='🎯'||i[0]=='⚠️')||insights()[0];const hc=s.h>=75?'var(--ac)':s.h>=50?'var(--warn)':'var(--bad)';
+const kp=(k,v,x='')=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div>${x}</div>`;
+return`<div class="grid g4">${kp('Total Spending',fmt(s.spent),`<div class="sm mu">this month</div>`)}${kp('Monthly Budget',fmt(s.bt))}${kp('Remaining Budget',`<span style="color:${s.left<0?'var(--bad)':'inherit'}">${fmt(s.left)}</span>`,prog(s.spent,s.bt))}${kp('Anomalies Detected',s.mA.length,`<div class="sm mu">${Object.keys(s.A).length} overall</div>`)}</div>
+<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Spending Trend</h3>${trend()}</div><div class="card"><h3>Category Distribution</h3>${donut(s.byC)}</div>
+<div class="card"><h3>Projection & Control</h3><div class="grid" style="grid-template-columns:1fr 1fr"><div><div class="k">Projected Month</div><div class="v">${fmt(s.proj)}</div></div><div><div class="k">Spend Control Score</div><div class="v" style="color:${hc}">${s.h}/100</div></div></div><div class="bar" style="margin-top:12px"><i style="width:${s.h}%;background:${hc}"></i></div></div>
+<div class="card" style="background:linear-gradient(135deg,rgba(99,102,241,.25),rgba(110,231,183,.12))"><h3>✦ AI Recommendation</h3><div>${rec?esc(rec[1]||rec[0]):'Add expenses to get recommendations.'}</div></div>
+<div class="card"><h3>Budget Progress</h3>${CATS.filter(c=>S.bud[c]).map(c=>`<div style="margin-bottom:10px"><div class="sm" style="display:flex;justify-content:space-between"><span>${c}</span><span class="mu">${fmt(s.byC[c])} / ${fmt(S.bud[c])}</span></div>${prog(s.byC[c],S.bud[c])}</div>`).join('')}</div>
+<div class="card"><h3>Recent Transactions</h3>${[...S.exp].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6).map(e=>txRow(e,s.A)).join('')||'<span class="mu">No transactions yet</span>'}</div></div>`},
+exp(){const A=anomalies(),q=UI.q.toLowerCase();let L=[...S.exp].sort((a,b)=>b.date.localeCompare(a.date)).filter(e=>(!q||e.desc.toLowerCase().includes(q))&&(!UI.cat||e.cat==UI.cat));
+return`<div class="card"><h3>Add expense</h3><div class="form"><input id="nd" type="date" value="${iso(new Date())}"><input id="nx" placeholder="Description (e.g. ${S.ws=='biz'?'Google Ads':'Zomato'})"><input id="na" type="number" placeholder="Amount ₹"><select id="nc"><option value="">Auto-categorize</option>${CATS.map(c=>`<option>${c}</option>`).join('')}</select><button class="p" onclick="addE()">Add</button></div>
+<div class="form"><label class="mu sm" style="align-self:center">CSV import (date,description,amount[,category])</label><input type="file" id="csv" accept=".csv" onchange="impCSV(this)"><button onclick="sample()">Sample CSV</button></div></div>
+<div class="card" style="margin-top:14px"><div class="form"><input placeholder="Search…" value="${esc(UI.q)}" oninput="UI.q=this.value;draw(1)" id="sq"><select onchange="UI.cat=this.value;draw()"><option value="">All categories</option>${CATS.map(c=>`<option ${UI.cat==c?'selected':''}>${c}</option>`).join('')}</select></div>
+${L.slice(0,100).map(e=>`<div class="row"><div><div>${esc(e.desc)} ${A[e.id]?'<span class="pill r">anomaly</span>':''}</div><div class="sm mu">${e.date} · <span class="pill">${e.cat}</span></div></div><div><b>${fmt(e.amount)}</b> <button onclick="delE('${e.id}')" title="Delete">✕</button></div></div>`).join('')||'<span class="mu">No expenses found.</span>'}${L.length>100?`<div class="sm mu">Showing 100 of ${L.length}</div>`:''}</div>`},
+ana(){const s=stats(),months={};S.exp.forEach(e=>months[e.date.slice(0,7)]=(months[e.date.slice(0,7)]||0)+e.amount);const mk2=Object.keys(months).sort().slice(-6),mx=Math.max(...mk2.map(k=>months[k]),1);
+const wd=[0,0,0,0,0,0,0];S.exp.forEach(e=>wd[new Date(e.date+'T00:00').getDay()]+=e.amount);const wm=Math.max(...wd,1);
+const bars=(items)=>items.map(([l,v,m])=>`<div style="margin-bottom:9px"><div class="sm" style="display:flex;justify-content:space-between"><span>${l}</span><span class="mu">${fmt(v)}</span></div><div class="bar"><i style="width:${v/m*100}%"></i></div></div>`).join('');
+const cm=Math.max(...CATS.map(c=>s.byC[c]),1);
+return`<div class="grid g2"><div class="card"><h3>Monthly totals</h3>${bars(mk2.map(k=>[k,months[k],mx]))||'<span class="mu">No data</span>'}</div><div class="card"><h3>Spending by weekday</h3>${bars(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d,i)=>[d,wd[i],wm]))}</div>
+<div class="card"><h3>This month by category</h3>${bars(CATS.map(c=>[c,s.byC[c],cm]))}</div><div class="card"><h3>Prediction</h3><div class="k">Projected month-end</div><div class="v">${fmt(s.proj)}</div><p class="sm mu">Fixed bills counted as spent; variable spending extrapolated from the ${s.d}-day daily run-rate over ${s.dim} days.</p>${s.bt?prog(s.proj,s.bt):''}</div></div>`},
+anom(){const A=anomalies(),ids=Object.keys(A).map(id=>S.exp.find(e=>e.id==id)).filter(Boolean).sort((a,b)=>b.date.localeCompare(a.date));
+return`<div class="card"><h3>Detected anomalies (${ids.length})</h3><p class="sm mu">Detection: per-category statistical outliers (mean + 2σ and ≥1.8× typical) and duplicate same-day charges.</p>${ids.map(e=>`<div class="row"><div><div>${esc(e.desc)} <span class="pill ${A[e.id].sev=='High'?'r':'y'}">${A[e.id].sev}</span></div><div class="sm mu">${e.date} · ${A[e.id].r}</div></div><div><b>${fmt(e.amount)}</b> <button onclick="okA('${e.id}')">Mark OK</button></div></div>`).join('')||'<span class="mu">Nothing unusual. 🎉</span>'}</div>`},
+bud(){const s=stats();return`<div class="card" style="margin-bottom:14px"><div class="k">Total monthly budget</div><div class="v">${fmt(s.bt)}</div><div class="form" style="margin:10px 0 0"><label class="mu sm" style="align-self:center">Budget CSV (category,limit)</label><input type="file" accept=".csv" onchange="impBud(this)"><button onclick="sampleB()">Sample CSV</button></div></div><div class="grid g4">${CATS.map(c=>{const b=S.bud[c]||0;return`<div class="card"><h3>${c}</h3><div class="sm mu">${fmt(s.byC[c])} spent</div>${prog(s.byC[c],b)}<div style="margin-top:10px"><input type="number" value="${b}" style="width:100%" onchange="setB('${c}',this.value)"></div></div>`}).join('')}</div>`},
+ai(){const tp=trimPlan(),ts=tp.reduce((t,r)=>t+r.save,0);return`<div class="card"><h3>✦ AI Insights</h3><p class="sm mu">Generated on-device from your data by rule-based analytics (trend, recurring-charge and budget models).</p>${insights().map(i=>`<div class="ins">${i[0]} ${esc(i[1]||'')}</div>`).join('')}</div>
+<div class="card" style="margin-top:14px"><h3>📉 Next-month trim plan</h3><p class="sm mu">${tp.length?`Following this plan could save about <b>${fmt(ts)}</b> next month.`:'Add expenses to build a plan.'}</p>${tp.map(r=>`<div class="row"><div><div>${r.c} <span class="pill">${fmt(r.base)} → ${fmt(r.target)}</span></div><div class="sm mu">${esc(r.tip)}</div></div><b style="color:var(--ac)">${r.save>0?'−'+fmt(r.save):'—'}</b></div>`).join('')}<div style="margin-top:12px"><button class="p" onclick="makePDF()">⬇ Download PDF report</button></div></div>`},
+set(){return`<div class="card"><h3>Account</h3><p>${esc(S.user?.name||'')} <span class="mu">${esc(S.user?.email||'')}</span> ${S.user?.demo?'<span class="pill">Demo</span>':''}</p><div class="form"><button onclick="S.theme=S.theme=='dark'?'light':'dark';save();draw()">Toggle theme</button><button onclick="exportCSV()">Export CSV</button><button onclick="seed();draw()">Reload demo data</button><button onclick="if(UI.clr){UI.clr=0;S.exp=[];S.bud={};save();draw()}else{UI.clr=1;this.textContent='Click again to confirm'}">Clear ${WSN[S.ws]} data</button><button onclick="S.user=null;save();draw()">Sign out</button></div></div>`}};
+
+const DISC=['Food','Shopping','Entertainment','Travel','Other','Marketing','Software','Supplies'];
+const TIP={Food:'Cook at home 2 more days a week, batch grocery orders and limit delivery apps.',Transport:'Combine trips, use metro/passes and avoid surge-priced rides.',Shopping:'Use a 48-hour wait rule on non-essentials and skip impulse buys.',Bills:'Compare plans/providers and remove unused add-ons.',Entertainment:'Pause or share subscriptions you rarely use.',Health:'Prefer generics and preventive care; compare pharmacy prices.',Education:'Use free/open courses; buy only what you will finish.',Travel:'Book early, set a trip cap and prefer trains over flights.',Other:'Categorize uncategorized spend and cap miscellaneous items.',Payroll:'Review overtime, contractor vs staff mix and hiring pace before adding headcount.',Marketing:'Pause low-ROI channels, track cost per lead and shift budget to top performers.',Software:'Audit seats and licences, cancel unused tools and use annual plans for discounts.','Rent & Utilities':'Renegotiate lease and utility plans; consider hybrid or shared space.',Supplies:'Bulk-buy essentials and set a monthly approval limit.','Professional Fees':'Bundle accounting and legal work into retainers; ask for fixed quotes.',Equipment:'Prefer refurbished or leased equipment and defer non-critical purchases.'};
+function trimPlan(){const s=stats(),cm=mk(),by={};S.exp.forEach(e=>{const m=e.date.slice(0,7);if(m<cm){(by[m]=by[m]||{})[e.cat]=(by[m][e.cat]||0)+e.amount}});
+const ms=Object.keys(by).sort().slice(-3);
+return CATS.map(c=>{const base=ms.length?ms.reduce((t,m)=>t+(by[m][c]||0),0)/ms.length:(FIXED.includes(c)?s.byC[c]:s.byC[c]/s.d*s.dim),b=S.bud[c]||0;
+let target=Math.round(base*(1-(DISC.includes(c)?.12:.04)));if(b&&target>b)target=b;return{c,base:Math.round(base),budget:b,target,save:Math.round(base)-target,tip:TIP[c]}}).filter(r=>r.base>0).sort((a,b)=>b.save-a.save)}
+function toast(m,label,fn){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:20;background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:92vw';document.body.appendChild(t)}
+t.innerHTML='';const sp=document.createElement('span');sp.textContent=m;t.appendChild(sp);if(label){const b=document.createElement('button');b.className='p';b.textContent=label;b.onclick=()=>{t.style.display='none';fn()};t.appendChild(b)}t.style.display='flex';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',9000)}
+function impBud(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{let n=0;r.result.split(/\r?\n/).forEach(l=>{const p=l.split(',');const c=CATS.find(x=>x.toLowerCase()==(p[0]||'').trim().toLowerCase()),v=parseFloat(p[1]);if(c&&v>=0){S.bud[c]=v;n++}});save();draw();toast(n+' budgets imported.','Generate PDF report',makePDF)};r.readAsText(f)}
+const sampleB=()=>dl('budget-sample.csv','category,limit\n'+CATS.map(c=>c+','+(S.bud[c]||0)).join('\n')+'\n');
+const cl=s=>String(s).replace(/₹/g,'Rs. ').replace(/[^\x20-\x7E×]/g,'').trim();
+async function makePDF(){if(!window.jspdf)return toast('PDF library failed to load.');
+const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'}),W=595,M=40,R=n=>'Rs. '+Math.round(n).toLocaleString('en-IN'),s=stats();let y=100;
+doc.setFillColor(15,23,42).rect(0,0,W,76,'F');doc.setTextColor(255).setFont('helvetica','bold').setFontSize(22).text('SmartSpend AI',M,38);
+doc.setFont('helvetica','normal').setFontSize(10).setTextColor(110,231,183).text('Track. Understand. Detect. Save.',M,56);doc.setTextColor(200).text(cl(WSN[S.ws]+' workspace  |  '+(S.user?.name||'User')+'  |  '+new Date().toDateString()),W-M,38,{align:'right'});doc.setTextColor(30);
+const need=h=>{if(y+h>800){doc.addPage();y=50}};
+const H=t=>{need(50);y+=12;doc.setFont('helvetica','bold').setFontSize(13).setTextColor(79,70,229).text(t,M,y);y+=6;doc.setDrawColor(210).line(M,y,W-M,y);y+=16;doc.setTextColor(30)};
+const T=(t,sz=10,b=0,ind=0)=>{doc.setFont('helvetica',b?'bold':'normal').setFontSize(sz);doc.splitTextToSize(cl(t),W-2*M-ind).forEach(l=>{need(sz+5);doc.text(l,M+ind,y);y+=sz+4})};
+const row=(c,xs,b,al)=>{need(16);doc.setFont('helvetica',b?'bold':'normal').setFontSize(9);c.forEach((v,i)=>doc.text(cl(v).slice(0,44),xs[i],y,{align:al?al[i]:(i?'right':'left')}));y+=15};
+const hd=(c,xs,al)=>{need(18);doc.setFillColor(238,240,252).rect(M-4,y-11,W-2*M+8,16,'F');row(c,xs,1,al)};
+H('Summary');[['Spent this month',R(s.spent)],['Monthly budget',R(s.bt)],['Remaining budget',R(s.left)],['Projected month-end',R(s.proj)],['Spend Control Score',s.h+' / 100'],['Anomalies this month',s.mA.length]].forEach(r=>{need(16);doc.setFont('helvetica','normal').setFontSize(10).text(r[0],M,y);doc.setFont('helvetica','bold').text(String(r[1]),W-M,y,{align:'right'});y+=16});
+H('Budget vs actual (this month)');let X=[M,380,470,W-M];hd(['Category','Budget','Spent','Used'],X);CATS.forEach(c=>{if(s.byC[c]||S.bud[c])row([c,R(S.bud[c]||0),R(s.byC[c]),S.bud[c]?Math.round(s.byC[c]/S.bud[c]*100)+'%':'-'],X)});
+H('AI insights');insights().forEach(i=>T('- '+(i[1]||i[0]),10,0,0));
+H('Detected anomalies');const A=s.A,an=Object.keys(A).map(id=>S.exp.find(e=>e.id==id)).filter(Boolean).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+if(!an.length)T('No unusual transactions detected.');an.forEach(e=>{T(`${e.date}  ${e.desc}  ${R(e.amount)}  [${A[e.id].sev}]`,10,1);T(A[e.id].r,9,0,12)});
+const tp=trimPlan(),ts=tp.reduce((t,r)=>t+r.save,0),nm=new Date(new Date().getFullYear(),new Date().getMonth()+1,1).toLocaleString('en',{month:'long',year:'numeric'});
+H('Plan to trim next month ('+nm+')');T(tp.length?`Target: reduce spending by about ${R(ts)} (${Math.round(ts/Math.max(1,tp.reduce((t,r)=>t+r.base,0))*100)}%) versus your recent baseline.`:'Add expenses to generate a plan.',10,1);y+=4;
+X=[M,330,400,470,W-M];hd(['Category','Baseline','Budget','Target','Save'],X);tp.forEach(r=>row([r.c,R(r.base),R(r.budget),R(r.target),R(r.save)],X));
+y+=8;T('Action steps',11,1);tp.filter(r=>r.save>0).slice(0,6).forEach((r,i)=>T(`${i+1}. ${r.c} (save ~${R(r.save)}): ${r.tip}`,10,0,6));
+if(an.length)T(`${tp.filter(r=>r.save>0).length+1}. Review the ${an.length} flagged transaction(s) and set alerts so one-off spikes do not repeat.`,10,0,6);
+T(`Weekly check-in: keep daily discretionary spend under ${R(Math.max(0,(tp.reduce((t,r)=>t+(DISC.includes(r.c)?r.target:0),0))/30))}.`,10,0,6);
+H('Recent expenses');X=[M,M+68,385,W-M];const AL=['left','left','left','right'];hd(['Date','Description','Category','Amount'],X,AL);[...S.exp].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25).forEach(e=>row([e.date,e.desc,e.cat,R(e.amount)],X,0,AL));
+const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal').setFontSize(8).setTextColor(130).text(`SmartSpend AI report - page ${i}/${n}`,W/2,825,{align:'center'})}
+const fn='SmartSpend-'+WSN[S.ws]+'-Report-'+mk()+'.pdf';try{const d=await window.claude?.use?.('downloads');if(d)await d.save({filename:fn,data:doc.output('arraybuffer')});else doc.save(fn)}catch(e){if(!e||e.code!='declined')toast('Could not save the PDF.')}}
+/* actions */
+function addE(){const d=$v('nd'),x=$v('nx').trim(),a=+$v('na');if(!x||!(a>0))return toast('Enter a description and a positive amount.');S.exp.push({id:uid(),date:d||iso(new Date()),desc:x,amount:a,cat:$v('nc')||categorize(x)});save();draw()}
+const $v=i=>document.getElementById(i).value;
+function delE(id){S.exp=S.exp.filter(e=>e.id!=id);save();draw()}
+function okA(id){S.ok.push(+id||id);save();draw()}
+function setB(c,v){S.bud[c]=Math.max(0,+v||0);save();draw()}
+function impCSV(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{let n=0;r.result.split(/\r?\n/).forEach((l,i)=>{const p=l.match(/("([^"]*)"|[^,]+)/g);if(!p||p.length<3)return;const c=p.map(x=>x.replace(/^"|"$/g,'').trim()),a=parseFloat(c[2]);if(!/^\d{4}-\d{2}-\d{2}$/.test(c[0])||!(a>0))return;S.exp.push({id:uid(),date:c[0],desc:c[1],amount:a,cat:CATS.includes(c[3])?c[3]:categorize(c[1])});n++});save();draw();toast(n+' expenses imported.','Generate PDF report',makePDF)};r.readAsText(f)}
+async function dl(name,txt){try{const d=await window.claude?.use?.('downloads');if(d){await d.save({filename:name,data:txt});return}}catch(e){if(e&&e.code=='declined')return}const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(txt);a.download=name;a.click()}
+const sample=()=>dl('sample.csv','date,description,amount,category\n'+iso(new Date())+',Zomato Dinner,540,\n'+iso(new Date())+',Uber Ride,310,\n');
+const exportCSV=()=>dl('smartspend.csv','date,description,amount,category\n'+S.exp.map(e=>`${e.date},"${e.desc}",${e.amount},${e.cat}`).join('\n'));
+function login(demo){const n=document.getElementById('ln').value.trim()||'Guest',m=document.getElementById('le').value.trim();S.user={name:demo?'Demo User':n,email:demo?'demo@smartspend.ai':m,demo};if(demo)seed();else{S.W={home:{exp:[],bud:{...BUDS.home},ok:[]},biz:{exp:[],bud:{...BUDS.biz},ok:[]}};apply(S.ws)}save();location.hash='dash';draw()}
+function draw(keep){document.documentElement.dataset.theme=S.theme;const app=document.getElementById('app');
+if(!S.user){app.innerHTML=`<main><div class="card login"><div class="logo" style="font-size:28px"><b>SmartSpend AI</b></div><p class="mu">Track. Understand. Detect. Save.<br>For your home and your business.</p><input id="ln" placeholder="Your name"><input id="le" type="email" placeholder="Email"><button class="p" onclick="login(false)">Create account</button><button onclick="login(true)">✦ Try Demo Mode</button><p class="sm mu">Local sign-in demo. Data stays in this browser.</p></div></main>`;return}
+const h=(location.hash||'#dash').slice(1),pg=P[h]?h:'dash',n=notes();
+app.innerHTML=`<nav><div class="logo"><b>SmartSpend AI</b></div><div class="tag">Track. Understand. Detect. Save.</div>${NAV.map(x=>`<a href="#${x[0]}" class="${x[0]==pg?'on':''}"><span>${x[2]}</span>${x[1].replace('AI ','')}</a>`).join('')}</nav>
+<main><div class="top"><h1>${NAV.find(x=>x[0]==pg)[1]} <span class="pill" style="vertical-align:middle">${WS[S.ws]}</span></h1><div style="display:flex;gap:8px;align-items:center"><div class="seg">${['home','biz'].map(k=>`<button class="${S.ws==k?'p':''}" onclick="switchWs('${k}')">${WS[k]}</button>`).join('')}</div><button class="p" onclick="makePDF()">⬇ PDF report</button><div class="bell"><button onclick="var p=document.getElementById('pan');p.style.display=p.style.display=='block'?'none':'block'">🔔${n.length?`<span class="dot">${n.length}</span>`:''}</button><div id="pan">${n.map(x=>`<div class="ins sm">${x[0]=='r'?'🔴':'🟡'} ${esc(x[1])}</div>`).join('')||'<span class="mu sm">All clear</span>'}</div></div></div></div>${P[pg]()}</main>`;
+if(keep){const q=document.getElementById('sq');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}}
+addEventListener('hashchange',()=>draw());draw();
+</script></body></html>
